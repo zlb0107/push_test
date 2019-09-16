@@ -1,0 +1,4 @@
+proto文件来自于https://code.inke.cn/tpc/rec/shortvideo/inke-protobuf-base/tree/master/proto，
+下载后需要添加：option go_package = "proto.hall.live";
+使用gogoprotobuf
+生成go文件：protoc --gofast_out=. *.proto

@@ -1,0 +1,13 @@
+[server]
+    service_name="rec.server.push_test"
+	port = 18999
+    [server.http]
+    	location = "/ping,/push_test"
+    	logResponse = "false,false"
+
+
+[[server_client]]
+    service_name="rec.server.push"
+    proto="http"
+    balancetype="roundrobin"
+    endpoints_from="consul"

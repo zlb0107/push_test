@@ -1,0 +1,8 @@
+<seelog type="asynctimer" asyncinterval="5000000" minlevel="trace">
+    <outputs formatid="main">   
+        <rollingfile type="date" filename="./logs/warning.log" datepattern="20060102" maxrolls="7" fullname="true"/>
+    </outputs>
+    <formats>
+        <format id="main" format="%Date %Time [%LEVEL] %File:%Line %Msg%n"/> 
+    </formats>
+</seelog>

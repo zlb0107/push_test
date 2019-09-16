@@ -1,0 +1,92 @@
+namespace cpp relation
+
+enum ErrorCode
+{
+	SUCCESS = 0,
+	ERROR_PARAMS = 499,
+	ERROR = 500,
+	THRIFT_ERROR = 6101,
+	MYSQL_ERROR = 6102,
+	REDIS_ERROR = 6103,
+	CACHE_MISS = 6104,
+	FOLLOW_LIMIT_ERROR = 6105,
+	ROW_NOT_FOUND = 6106,
+	ALREADY_FOLLOWED = 6107,
+	QUEUE_IS_EMPTY = 6108,
+	MYSQL_GET_CONN_ERROR = 6109,
+}
+
+enum RelationType
+{
+    NO_RELATION = 0,
+    BEFOLLOWED = 1,
+    FOLLOWING = 2,
+    MUTUAL = 3,
+    SELF = 4,
+}
+
+struct RelationInfo
+{
+	1: i64 id                = 0,
+	2: i64 uid               = 0,
+	3: i64 targetId          = 0,
+	4: RelationType relation = RelationType.NO_RELATION,
+}
+
+struct RelationResult
+{
+	1: i32 retCode        = 0,
+	2: optional list<RelationInfo> relationList, //批量查询关系
+	3: optional i32 total = 0,
+	4: optional RelationInfo relationInfo,
+}
+
+struct CounterResult
+{
+	1: i32 retCode        = 0,
+	2: optional i32 count = 0,
+	3: optional map<i64, i32> counterMap, //批量查询计数
+}
+
+struct FollowingResult
+{
+  	1: i32 retCode        = 0,  //0:SUCCESS,其他:失败
+  	2: optional list<i64> uids, //返回关注ID列表
+}
+
+service RelationService
+{
+	i32 ping();
+	
+	i32 follow(1:i64 uid, 2:i64 targetId);
+	
+	i32 unFollow(1:i64 uid, 2:i64 targetId);
+	
+	RelationResult followingList(1:i64 uid, 2:i32 start, 3:i32 limit);
+	
+	FollowingResult getAllFollowings(1:i64 uid);
+	
+	RelationResult fansList(1:i64 uid, 2:i32 start, 3:i32 limit);
+	
+	RelationResult getFansById(1:i64 uid, 2:i64 startId, 3:i32 limit);
+	
+	RelationResult mutualList(1:i64 uid, 2:i32 start, 3:i32 limit);
+	
+	RelationResult getRelations(1:i64 uid, 2:list<i64> idList);
+	
+	RelationResult getRelation(1:i64 uid, 2:i64 targetId);
+	
+	CounterResult fansCounts(1:list<i64> idList);
+	
+	CounterResult followingCounts(1:list<i64> idList);
+	
+	CounterResult fansCount(1:i64 uid);
+	
+	CounterResult followingCount(1:i64 uid);
+	
+	CounterResult mutualCount(1:i64 uid);
+	
+	i32 updateFansCount(1:i64 uid, 2:i32 count);
+	
+	
+}

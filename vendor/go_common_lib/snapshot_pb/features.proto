@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_package = "com.inke.service.proto.hall.live";
+option go_package = "proto.hall.live";
+
+
+message FeaturesInfo {
+    // redis key
+    string key = 1;
+    // 特征长度，无论稀疏特征，还是稠密特征都设置
+    int32 size = 2;
+    // 特征值 f1,f2,f3 ...
+    repeated float values = 3;
+    // 特征索引稀疏特征时设置，稠密特征默认为空
+    repeated int32 indices = 4;
+    // 特征时间，用于在指定分区解析离线特征
+    int32 ymd = 5;
+}
+
+message OfflineFeaturesInfo {
+    // 用于存储快照数据，服务取之即用
+    repeated FeaturesInfo snapshot = 1;
+    // 特征值
+    repeated FeaturesInfo features = 2;
+    // 写入redis的key
+    string key = 3;
+}

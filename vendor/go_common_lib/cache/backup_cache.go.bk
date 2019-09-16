@@ -1,0 +1,151 @@
+package cache
+
+//该cache的过期时间策略为懒删除，被查到后进行删除，不查不删，在每天凌晨三点做整体的删除检查。
+import (
+	logs "github.com/cihub/seelog"
+	"strconv"
+	"time"
+)
+
+type CacheValue struct {
+	Value     string //真正的value
+	Timestamp int64  //创建时间
+	Tag       string //辅助信息
+	Expire    int64  //过期时间 单位：秒
+}
+type CacheControl struct {
+	//三层结构，最底层是每个uid对应的subkey
+	Block_array [][][]*CacheValue
+	Block_size  int
+	Block_num   int
+	Sub_key_map map[string]int
+	Sub_key_id  int
+	Is_init     bool
+	Channel     chan Request
+}
+type Request struct {
+	Key     string
+	Sub_key string
+	Value   string
+	Tag     string
+	Expire  int64
+}
+
+var Cache_controlor CacheControl
+
+const INT_MAX = 10000 * 10000 * 10
+
+//block大小，block为数组分区，避免内存浪费
+const BLOCK_SIZE = 10000
+const CHANNEL_SIZE = 1000
+
+func init() {
+	//初始化整体结构
+	Cache_controlor.Init()
+}
+
+func (this *CacheControl) Register(sub_key string) {
+	this.Init()
+	this.Sub_key_map[sub_key] = this.Sub_key_id
+	this.Sub_key_id += 1
+	logs.Error("register")
+	logs.Flush()
+}
+func (this *CacheControl) Init() {
+	if this.Is_init {
+		return
+	}
+	this.Block_size = BLOCK_SIZE
+	this.Block_num = INT_MAX / BLOCK_SIZE
+	logs.Error("block_num", this.Block_num, " INT_MAX:", INT_MAX)
+	this.Block_array = make([][][]*CacheValue, this.Block_num)
+	this.Sub_key_map = make(map[string]int)
+	this.Is_init = true
+	this.Channel = make(chan Request, CHANNEL_SIZE)
+	go this.update()
+}
+func (this *CacheControl) update() {
+	for {
+		req := <-this.Channel
+		block_idx, value_idx, sub_id := this.get_uid_info(req.Key, req.Sub_key)
+		if block_idx < 0 || value_idx < 0 || sub_id < 0 {
+			logs.Error("id not right")
+			logs.Flush()
+			continue
+		}
+		if this.Block_array[block_idx] == nil {
+			//该block还未初始化，先进行初始化
+			block := make([][]*CacheValue, this.Block_size)
+			this.Block_array[block_idx] = block
+		}
+
+		if this.Block_array[block_idx][value_idx] == nil {
+			sub_block := make([]*CacheValue, this.Sub_key_id)
+			this.Block_array[block_idx][value_idx] = sub_block
+		}
+		//logs.Error("sub_id:", this.Sub_key_id, " ", sub_id, " block_idx:", block_idx, " value_idx:", value_idx)
+		//logs.Error("len:", len(this.Block_array[block_idx]))
+		//logs.Flush()
+		new_value := CacheValue{req.Value, time.Now().Unix(), req.Tag, req.Expire}
+		this.Block_array[block_idx][value_idx][sub_id] = &new_value
+	}
+}
+func (this *CacheControl) Update(key, sub_key, value, tag string, expire int64) {
+	if len(this.Channel) >= CHANNEL_SIZE/2 {
+		//logs.Error("channel is busy:", len(this.Channel))
+		return
+	}
+	req := Request{key, sub_key, value, tag, expire}
+	this.Channel <- req
+}
+func (this *CacheControl) Delete(key, sub_key string) {
+	block_idx, value_idx, sub_id := this.get_uid_info(key, sub_key)
+	if block_idx < 0 || value_idx < 0 || sub_id < 0 {
+		return
+	}
+	if this.Block_array[block_idx] != nil && this.Block_array[block_idx][value_idx] != nil {
+		this.Block_array[block_idx][value_idx][sub_id] = nil
+	}
+}
+func (this *CacheControl) Get(key string, sub_key string) (string, string) {
+	block_idx, value_idx, sub_id := this.get_uid_info(key, sub_key)
+	if block_idx < 0 || value_idx < 0 || sub_id < 0 {
+		return "", ""
+	}
+	if this.Block_array[block_idx] == nil {
+		return "", ""
+	}
+	if this.Block_array[block_idx][value_idx] == nil {
+		return "", ""
+	}
+	if this.Block_array[block_idx][value_idx][sub_id] == nil {
+		return "", ""
+	}
+	value_info := this.Block_array[block_idx][value_idx][sub_id]
+	now := time.Now().Unix()
+	if (value_info.Timestamp + value_info.Expire) < now {
+		//已过期
+		this.Block_array[block_idx][value_idx] = nil
+		return "", ""
+	}
+	return value_info.Value, value_info.Tag
+}
+func (this *CacheControl) get_uid_info(key, sub_key string) (int, int, int) {
+	uid64, err := strconv.ParseInt(key, 10, 32)
+	if err != nil {
+		logs.Error("key is not uid:", key, " err:", err)
+		return -1, -1, -1
+	}
+	if _, is_in := this.Sub_key_map[sub_key]; !is_in {
+		logs.Error("this subkey is not register:", sub_key)
+		return -1, -1, -1
+	}
+	if uid64 > INT_MAX {
+		return -1, -1, -1
+	}
+	sub_id := this.Sub_key_map[sub_key]
+	uid := int(uid64)
+	block_idx := uid / this.Block_size
+	value_idx := uid % this.Block_size
+	return block_idx, value_idx, sub_id
+}

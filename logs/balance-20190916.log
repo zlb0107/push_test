@@ -1,0 +1,13 @@
+2019-09-16 18:08:28.597 upstream/subset.go:260 subset:rec.server.push-http:<> origin hosts [], hosts [], healthy [], filterAdded [], filterRemoved []
+2019-09-16 18:08:28.597 upstream/subset.go:154 rec.server.push-http subset lb: creating fallback load balancer for rec.server.push-http:<>
+2019-09-16 18:08:28.597 upstream/subset.go:167 subset:rec.server.push-http:<> origin hosts [], hosts [], healthy [], filterAdded [], filterRemoved []
+2019-09-16 18:08:28.597 upstream/host_set.go:52 rec.server.push-http:<> subset weightRoundRobin update [], removed []
+2019-09-16 18:08:29.101 upstream/cluster.go:56 cluster "rec.server.push-http" use staticEndpoints [], load last error open data/.endpoints.rec.server.push-http: no such file or directory
+2019-09-16 18:08:29.101 upstream/cluster.go:56 cluster "rec.server.push-http" use startup endpoints []
+2019-09-16 18:08:29.101 upstream/cluster.go:244 dumpLastServerResult rec.server.push-http return <nil>, last service list size 0
+2019-09-16 18:08:29.102 upstream/cluster.go:254 rec.server.push-http host set updated, now health []
+2019-09-16 18:08:29.102 upstream/host_set.go:52 rec.server.push-http hostset update added [], removed [], update
+2019-09-16 18:08:29.102 upstream/subset.go:167 subset:rec.server.push-http:<> origin hosts [], hosts [], healthy [], filterAdded [], filterRemoved []
+2019-09-16 18:08:29.102 upstream/host_set.go:52 rec.server.push-http:<> subset weightRoundRobin update [], removed []
+2019-09-16 18:08:29.102 upstream/cluster.go:224 rec.server.push-http onClusterChanged [], added [], removed [], current []
+2019-09-16 18:08:29.103 utils/outside.go:33 consul: service register with remote tags override local "", remote "", path "/service_config/rec/rec.server.push_test/service_tags/192.168.27.99/18999"

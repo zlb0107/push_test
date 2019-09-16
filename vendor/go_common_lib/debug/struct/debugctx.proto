@@ -1,0 +1,30 @@
+syntax = "proto3";
+package mypackage;
+
+option java_package = "com.inke.service.proto.hall.live";
+option go_package = "proto.debugctx";
+
+message DebugCtxMessage {
+    int32 uid = 1;
+    int32 timestamp = 2;
+    repeated ListData supplement_datas = 3;
+    ListData merge_data = 4;
+    repeated ListData scatter_datas = 5;
+    repeated ListData interpose_datas = 6;
+    ListData output_data = 7;
+};
+
+message ListData {
+    string plugin_name = 1;
+    repeated LiveInfo live_list = 2;
+};
+
+message LiveInfo {
+    int32 uid = 1;
+    string live_id = 2;
+    string reason = 3;
+    float distance = 4;
+    string token = 5;
+    string filter_name = 6;
+    string appearance = 7;
+}

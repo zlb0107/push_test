@@ -1,0 +1,3 @@
+2019-09-16 18:08:29.103 server/server.go:114 [34mINFO[0m start http server on :18999
+2019-09-16 18:09:08.664 server/server.go:134 [34mINFO[0m http server closed: http: Server closed
+2019-09-16 18:09:08.664 server/server.go:138 [34mINFO[0m waiting for http server stop done

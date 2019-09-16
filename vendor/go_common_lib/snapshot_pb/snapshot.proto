@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+import "features.proto";
+
+option java_package = "com.inke.service.proto.hall.live";
+option go_package = "proto.hall.live";
+
+message SnapshotMessage {
+    // 快照版本
+    string version = 1;
+    // token
+    string token = 2;
+    // 多模型
+    repeated ModelFeaturesInfo snapshot = 3;
+    // 出口处最终score
+    float score = 4;
+}
+
+message ModelFeaturesInfo {
+    // 标识当前模型
+    string type = 1;
+    // 离线特征
+    repeated FeaturesInfo features = 2;
+    // 实时特征,为了方便写快照，直接使用这个结构，增加了特征和快照的耦合性了
+    repeated FeaturesInfo online = 3;
+    // 召回源特征
+    repeated FeaturesInfo trigger = 4;
+    // 单个模型pre
+    float score = 5;
+}
+
+
+
